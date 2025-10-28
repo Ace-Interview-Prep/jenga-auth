@@ -1,0 +1,70 @@
+-- TODO: move to Stripe handler folder
+
+module Jenga.Backend.Handlers.Auth.Subscriptions.CancelSubscription where
+
+
+import Jenga.Backend.DB.Auth
+import Jenga.Backend.DB.Subscriptions
+import Jenga.Backend.Utils.HasConfig
+import Jenga.Backend.Utils.HasTable
+import Jenga.Common.Errors
+import Jenga.Common.Schema
+import Jenga.Common.BeamExtras
+import Jenga.Common.Auth
+
+import Database.Beam
+import Database.Beam.Postgres
+import Rhyolite.Account
+
+import Data.Pool
+import Control.Monad.Trans.Reader
+
+import Web.Stripe
+import Web.Stripe.Customer
+import Web.Stripe.Subscription
+
+cancelSubscriptionHandler
+  :: forall db cfg m.
+     ( MonadIO m
+     , Database Postgres db
+     , HasConfig cfg StripeConfig
+     , HasConfig cfg (Pool Connection)
+     , HasJengaTable Postgres db StripeRelation
+     , HasJengaTable Postgres db Account
+     )
+  => Id Account
+  -> ReaderT cfg m (Either (BackendError CancelSubError) ())
+cancelSubscriptionHandler acctID = do
+  stripeConfig <- asksM -- Cfg _stripeConfig
+
+  (stripeTbl :: PgTable Postgres db StripeRelation) <- asksTableM
+  (acctTbl :: PgTable Postgres db Account) <- asksTableM
+
+  let stripe' = liftIO . stripe stripeConfig
+  maybeStripeRelation <- withDbEnv $ getStripeInfo stripeTbl acctID
+  case maybeStripeRelation of
+    Nothing -> do
+      mEmail <- withDbEnv $ getUsersEmail acctTbl acctID
+      case mEmail of
+        Nothing -> pure $ Left . BCritical $ NoSubOrAccount
+        Just _email -> do
+          isBulkPurchaseEmail <- pure False --liftIO $ isPaidForEmail email -- See TODO
+          case isBulkPurchaseEmail of
+            True -> pure $ Left . BUserError $ SelfCancelUnderGroupPlan
+            False -> pure $ Left . BCritical $ NoStripeInfo
+    Just (StripeRelation _ customerId_ maybeSubscriptionId) -> do
+      case maybeSubscriptionId of
+        Nothing -> pure $ Left . BUserError $ NoSubscriptionExists
+        Just subscriptionId_ -> do
+          eithCancelSub <- stripe' $ cancelSubscription (CustomerId customerId_) (SubscriptionId subscriptionId_)
+          case eithCancelSub of
+            Left e -> pure . Left . BCritical . StripeCouldntCancel $ e
+            Right _ -> do
+              withDbEnv $ recordEndSubscription stripeTbl acctID
+              pure $ Right ()
+
+  -- get stripe customer id AND subscription id based on acct id
+  -- use stripe api to cancel subscription for this customer
+
+  -- the subscription ID should be a Maybe subscription ID where Nothing implies the subscription was cancelled
+  -- then if they re-subscribe it will be a new Just subscriptionId

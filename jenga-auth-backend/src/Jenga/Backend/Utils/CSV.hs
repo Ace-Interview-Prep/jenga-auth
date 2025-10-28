@@ -1,0 +1,15 @@
+module Jenga.Backend.Utils.CSV where
+
+
+
+-- From visual analysis branch
+newtype Column a = Column { unColumn :: [a] } deriving (Show, Ord, Eq, Functor, Foldable)
+getColumn :: Int -> [[a]] -> Maybe (Column a)
+getColumn column csv' = fmap Column $ sequenceA $ fmap (f column) csv'
+  where f col row = if length row - 1 < col then Nothing else Just $ row !! col
+
+average :: Fractional a => [a] -> a
+average xs = (\(tot, itemCount) -> tot / (fromInteger itemCount) ) $ foldr avg (0, 0 :: Integer) xs
+
+avg :: Num a => a -> (a, Integer) -> (a, Integer)
+avg a (b, itemCount) = (a + b, itemCount + 1)

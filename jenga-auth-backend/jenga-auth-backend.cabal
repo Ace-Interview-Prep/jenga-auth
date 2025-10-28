@@ -1,0 +1,156 @@
+name: jenga-auth-backend
+version: 0.1
+cabal-version: >= 1.8
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  if impl(ghcjs)
+    buildable: False
+  build-depends: aeson
+               , base
+               , base64-bytestring
+               , beam-automigrate
+               , beam-core
+               , beam-postgres
+               , bytestring
+               , case-insensitive
+               , constraints-extras
+               , containers
+               -- , csv
+               , clientsession
+               , constraints
+               , dependent-sum
+               , dependent-map
+               , email-validate
+               , exceptions
+               , ghc-prim
+               , http-client
+               , http-types
+               , http-client-tls
+               , io-streams
+               , jenga-auth-common
+               , lens
+               , lifted-base
+               , lucid
+               , megaparsec
+               , mime-mail
+               , mime-mail-orphans
+               , mmark
+               , mmark-ext
+               , network-uri
+               , obelisk-route
+               , obelisk-oauth-common
+               , obelisk-oauth-backend
+               , parsec
+               , postgresql-simple
+               , psql-simple-beam
+               , psql-simple-class
+               , random
+               , reflex-dom-core
+               , resource-pool
+               , rhyolite-account-backend
+               , rhyolite-account-types
+               , rhyolite-email
+               , rhyolite-notify-listen-beam
+               , rhyolite-beam-db
+               , signed-data
+               , signed-data-clientsession
+               , snap
+               , snap-extras
+               , stripe-core
+               , stripe-haskell
+               , text
+               , these
+               , time
+               , transformers
+               , vector
+               , template-haskell
+               , lamarckian
+
+  exposed-modules:
+    Jenga.Backend.DB.Auth
+    Jenga.Backend.DB.BeamInstances
+    Jenga.Backend.DB.Emailing
+    Jenga.Backend.DB.Instances
+    Jenga.Backend.DB.LogItems
+    Jenga.Backend.DB.OrgBased
+    Jenga.Backend.DB.Subscriptions
+
+    Jenga.Backend.Utils.Account
+    Jenga.Backend.Utils.AuthHandlers
+    Jenga.Backend.Utils.CSV
+    Jenga.Backend.Utils.Date
+    Jenga.Backend.Utils.ErrorHandling
+    Jenga.Backend.Utils.HasConfig
+    Jenga.Backend.Utils.HasTable
+    Jenga.Backend.Utils.HttpJson
+    Jenga.Backend.Utils.Log
+    Jenga.Backend.Utils.Markdown
+    Jenga.Backend.Utils.Query
+    Jenga.Backend.Utils.Snap
+    Jenga.Backend.Utils.Email
+
+    Jenga.Backend.Handlers.Auth.Login
+    Jenga.Backend.Handlers.Auth.OAuth
+    Jenga.Backend.Handlers.Auth.RequestPasswordReset
+    Jenga.Backend.Handlers.Auth.ResetPassword
+    Jenga.Backend.Handlers.Auth.UserSignup
+    Jenga.Backend.Handlers.Auth.OrgBased.AddUsers
+    Jenga.Backend.Handlers.Auth.OrgBased.AdminSignup
+    Jenga.Backend.Handlers.Auth.OrgBased.Invite
+    Jenga.Backend.Handlers.Auth.OrgBased.RedeemLink
+
+    Jenga.Backend.Handlers.Auth.Subscriptions.CancelSubscription
+    Jenga.Backend.Handlers.Auth.Subscriptions.IsFreeTrialExpired
+    Jenga.Backend.Handlers.Auth.Subscriptions.NewFreeTrial
+    Jenga.Backend.Handlers.Auth.Subscriptions.NewSubscriber
+
+  ghc-options: -Wall -Werror -O -threaded -fno-show-valid-hole-fits
+               -Wunused-packages
+               -- -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -O -fno-show-valid-hole-fits -Werror=incomplete-patterns
+  default-extensions:
+      AllowAmbiguousTypes
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      EmptyCase
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      GeneralizedNewtypeDeriving
+      InstanceSigs
+      KindSignatures
+      LambdaCase
+      MultiParamTypeClasses
+      OverloadedStrings
+      PolyKinds
+      QuasiQuotes
+      RankNTypes
+      RecursiveDo
+      ScopedTypeVariables
+      StandaloneDeriving
+      TemplateHaskell
+      TypeApplications
+      TypeFamilies
+      TypeOperators
+
+      DeriveGeneric
+      FlexibleContexts
+      FlexibleInstances
+      GADTs
+      LambdaCase
+      MultiParamTypeClasses
+      OverloadedStrings
+      QuasiQuotes
+      RankNTypes
+      ScopedTypeVariables
+      TemplateHaskell
+      TypeFamilies

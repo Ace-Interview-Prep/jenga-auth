@@ -1,0 +1,70 @@
+name: jenga-auth-common
+version: 0.1
+cabal-version: >= 1.8
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  build-depends: base
+               , aeson
+               , attoparsec
+               , base64-bytestring
+               , beam-core
+               , bytestring
+               , containers
+               , email-validate
+               , lens
+               , mime-mail
+               , mime-mail-orphans
+               , rhyolite-account-types
+               , signed-data
+               , stripe-core
+               , template-haskell
+               , text
+               , time
+               , uuid-types
+  if !impl(ghcjs)
+     build-depends: unicode-transforms
+
+  exposed-modules:
+        Jenga.Common.Auth
+        Jenga.Common.BeamExtras
+        Jenga.Common.Schema
+        Jenga.Common.Cookie
+        Jenga.Common.Errors
+        Jenga.Common.ScrubPrefix
+        Jenga.Common.Stripe
+
+  ghc-options: -Wall -Werror -O -fno-show-valid-hole-fits
+               -Wunused-packages
+
+               -- -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -O -fno-show-valid-hole-fits -Werror=incomplete-patterns
+
+  default-extensions:
+      DeriveGeneric
+      EmptyDataDecls
+      FlexibleContexts
+      FlexibleInstances
+      GADTs
+      LambdaCase
+      MultiParamTypeClasses
+      OverloadedStrings
+      RankNTypes
+      TemplateHaskell
+      TypeFamilies
+      UndecidableInstances
+      ConstraintKinds
+      FunctionalDependencies
+      RecursiveDo
+      ConstraintKinds
+      FlexibleContexts
+      FlexibleInstances
+      FunctionalDependencies
+      GADTs
+      LambdaCase
+      MultiParamTypeClasses
+    -- OverloadedStrings
+      RankNTypes
+      RecursiveDo
+      ScopedTypeVariables
+      TemplateHaskell
