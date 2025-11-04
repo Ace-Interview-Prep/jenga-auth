@@ -29,7 +29,6 @@ library
                , bytestring
                , bytestring-aeson-orphans
                , ClasshSS
-               , common
                , containers
                , cookie
                , data-default
