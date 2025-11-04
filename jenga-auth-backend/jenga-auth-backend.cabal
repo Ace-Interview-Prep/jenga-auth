@@ -107,7 +107,7 @@ library
     Jenga.Backend.Handlers.Auth.Subscriptions.NewSubscriber
 
   ghc-options: -Wall -Werror -O -threaded -fno-show-valid-hole-fits
-               -Wunused-packages
+               -- -Wunused-packages
                -- -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -O -fno-show-valid-hole-fits -Werror=incomplete-patterns
   default-extensions:
       AllowAmbiguousTypes
@@ -141,16 +141,3 @@ library
       TypeApplications
       TypeFamilies
       TypeOperators
-
-      DeriveGeneric
-      FlexibleContexts
-      FlexibleInstances
-      GADTs
-      LambdaCase
-      MultiParamTypeClasses
-      OverloadedStrings
-      QuasiQuotes
-      RankNTypes
-      ScopedTypeVariables
-      TemplateHaskell
-      TypeFamilies

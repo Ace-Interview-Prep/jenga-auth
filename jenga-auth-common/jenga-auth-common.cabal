@@ -14,14 +14,17 @@ library
                , containers
                , email-validate
                , lens
+               , network-uri
                , mime-mail
                , mime-mail-orphans
+               , obelisk-route
                , rhyolite-account-types
                , signed-data
                , stripe-core
                , template-haskell
                , text
                , time
+               , transformers
                , uuid-types
   if !impl(ghcjs)
      build-depends: unicode-transforms
@@ -32,6 +35,7 @@ library
         Jenga.Common.Schema
         Jenga.Common.Cookie
         Jenga.Common.Errors
+        Jenga.Common.HasJengaConfig
         Jenga.Common.ScrubPrefix
         Jenga.Common.Stripe
         Jenga.Common.Log
@@ -42,30 +46,36 @@ library
                -- -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -O -fno-show-valid-hole-fits -Werror=incomplete-patterns
 
   default-extensions:
+      AllowAmbiguousTypes
+      BangPatterns
+      ConstraintKinds
+      DataKinds
+      DefaultSignatures
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
       DeriveGeneric
+      DeriveTraversable
+      EmptyCase
       EmptyDataDecls
       FlexibleContexts
       FlexibleInstances
+      FunctionalDependencies
       GADTs
+      GeneralizedNewtypeDeriving
+      InstanceSigs
+      KindSignatures
       LambdaCase
       MultiParamTypeClasses
       OverloadedStrings
-      RankNTypes
-      TemplateHaskell
-      TypeFamilies
-      UndecidableInstances
-      ConstraintKinds
-      FunctionalDependencies
-      RecursiveDo
-      ConstraintKinds
-      FlexibleContexts
-      FlexibleInstances
-      FunctionalDependencies
-      GADTs
-      LambdaCase
-      MultiParamTypeClasses
-    -- OverloadedStrings
+      PolyKinds
+      QuasiQuotes
       RankNTypes
       RecursiveDo
       ScopedTypeVariables
+      StandaloneDeriving
       TemplateHaskell
+      TypeApplications
+      TypeFamilies
+      TypeOperators
+      UndecidableInstances

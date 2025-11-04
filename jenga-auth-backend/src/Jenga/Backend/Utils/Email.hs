@@ -37,6 +37,7 @@ import qualified Data.Text.Lazy as LT
 import qualified Data.ByteString.Lazy as LBS
 
 --import Data.Constraint.Compose
+newtype AdminEmail = AdminEmail { getAdminEmail :: Address }
 
 
 showPart :: Part -> String

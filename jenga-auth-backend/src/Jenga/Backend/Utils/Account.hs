@@ -2,7 +2,7 @@ module Jenga.Backend.Utils.Account (createNewAccount, createNewAccountWithSetupE
 
 import Jenga.Backend.DB.Auth
 import Jenga.Backend.DB.OrgBased
-import Jenga.Backend.Utils.HasTable (PgTable, HasJengaTable, asksTableM)
+import Jenga.Backend.Utils.HasTable (PgTable, HasJengaTable, asksTableM, withDbEnv)
 import Jenga.Common.Schema
 import Control.Monad.Trans.Reader
 

@@ -1,0 +1,97 @@
+cabal-version: 2.2
+name: jenga-auth-frontend
+version: 0.1
+
+build-type: Simple
+
+library
+  if os(android)
+     cpp-options: -Dandroid_HOST_OS
+  --   c-sources: csrc/native_camera.c
+  --   include-dirs: csrc
+  --   build-tools: hsc2hs
+  --   --extra-libraries: camera2ndk mediandk log
+
+  --   -- !!If we dont set ld-options then the app crashes on startup!
+  --   ld-options: -lcamera2ndk -llog -lmediandk -laaudio
+
+  --   --ghc-options: -fPIC -no-hs-main -optl-shared -optl-fPIC
+
+  --   --ghc-options: -optl-lcamera2ndk -optl-lmediandk -optl-llog
+
+  hs-source-dirs: src
+
+  -- extra-libraries: log
+  build-depends: base
+               , aeson
+               , beam-core
+               , bimap
+               , bytestring
+               , bytestring-aeson-orphans
+               , ClasshSS
+               , common
+               , containers
+               , cookie
+               , data-default
+               , email-validate
+               , filepath
+               , ghcjs-dom
+               , jsaddle
+               , jenga-auth-common
+               , lens
+               , network-uri
+               , obelisk-executable-config-lookup
+               , obelisk-frontend
+               , staticAssets
+               , obelisk-oauth-common
+               , obelisk-route
+               , parsec
+               , random
+               , reflex
+               , reflex-classhss
+               , rhyolite-account-types
+               , rhyolite-common
+               , rhyolite-frontend
+               , signed-data
+               , template-haskell
+               , templates
+               , text
+               , time
+               , transformers
+               , vessel
+               , ref-tf
+               , reflex-dom-core
+               , data-default
+  exposed-modules:
+    Jenga.Frontend.Api
+    Jenga.Frontend.Consumable
+    Jenga.Frontend.DomExtras
+    Jenga.Frontend.FRPExtras
+    Jenga.Frontend.JS
+    Jenga.Frontend.Platform
+    Jenga.Frontend.Promise
+    Jenga.Frontend.Scroll
+    Jenga.Frontend.Shuffle
+    Jenga.Frontend.TimeExtras
+
+
+  ghc-options: -Wall
+               -- -Wunused-packages
+               -- ^ ghcjs-dom is weird
+               -Werror
+               -O -fno-show-valid-hole-fits "-with-rtsopts= -K0"
+               -- -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -O -fno-show-valid-hole-fits -Werror=incomplete-patterns
+
+  default-extensions:
+    ConstraintKinds
+    FlexibleContexts
+    FlexibleInstances
+    FunctionalDependencies
+    GADTs
+    LambdaCase
+    MultiParamTypeClasses
+    -- OverloadedStrings
+    RankNTypes
+    RecursiveDo
+    ScopedTypeVariables
+    TemplateHaskell
