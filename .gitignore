@@ -1,0 +1,6 @@
+# Emacs autosave files (e.g. #foo#)
+# and lock files (e.g. .#foo)
+# and backup files (e.g. foo~)
+*~
+\#*\#
+.\#*
