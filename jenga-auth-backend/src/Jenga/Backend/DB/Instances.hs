@@ -22,6 +22,7 @@ import Database.Beam.Backend.SQL.BeamExtensions
 import Network.Mail.Mime (Mail)
 import Data.Proxy
 import Data.Int (Int64)
+import qualified Data.Text as T
 -- TODO: why is this needed?
 
 instance FromField (SqlSerial Int64) where
@@ -53,3 +54,8 @@ instance FromBackendRow Postgres UserType
 
 instance FromField UserType where
   fromField f d = read <$> fromField f d
+
+instance HasColumnType UserType where
+  defaultColumnType _ = defaultColumnType $ Proxy @T.Text
+
+instance HasSqlEqualityCheck Postgres UserType

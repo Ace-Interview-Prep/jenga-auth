@@ -56,13 +56,13 @@ userSignup
   => T.Text -- ^ email subject
   -> T.Text -- ^ email address
   -> frontendRoute (Signed PasswordResetToken)
-  -> (T.Text -> StaticWidget x ())  -- ^ email body
+  -> (Link -> StaticWidget x ())  -- ^ email body
   -> ReaderT cfg m (Either (BackendError UserSignupError) ())
 userSignup subject email resetRoute mkBody = do
   case emailAddress (T.encodeUtf8 email) of
     Nothing -> pure . Left . BUserError $ BadSignupEmail
     Just emailParsed -> do
-      createNewAccount @db @beR (emailParsed) (IsGroupUser emailParsed "Ace") resetRoute >>= \case
+      createNewAccount @db @beR (emailParsed) IsSelf resetRoute >>= \case
         Left e -> pure $ Left e
         Right link -> do
           let

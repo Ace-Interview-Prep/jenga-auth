@@ -33,10 +33,9 @@ withErrorReporting
      , HasJengaTable Postgres db LogItemRow
      , HasJsonNotifyTbl be SendEmailTask n
      )
-  => cfg
+  => ReaderT cfg m (Either (BackendError e) a)
   -> ReaderT cfg m (Either (BackendError e) a)
-  -> m (Either (BackendError e) a)
-withErrorReporting cfgEnv mE = flip runReaderT cfgEnv $ do
+withErrorReporting mE =  do
   --result :: (Either SomeException (Either (BackendError e) a)) <- try mE
   tryBE mE >>= reportWhenError @db
   -- result <- tryBE mE

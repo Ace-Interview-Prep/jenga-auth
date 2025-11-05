@@ -145,10 +145,8 @@ tryLogin (email, Password pass) = do
           userType' <- withDbEnv $ getUserType uTypeTbl $ pk acctRow--aid
           case userType' of
             Nothing -> pure . Left . BCritical $ NoUserTypeFound
-            Just Admin -> do
-              pure $ Right (usersAccountId, Admin)
-            Just Self -> do
-              pure $ Right (usersAccountId, Self)
+            Just uType -> do
+              pure $ Right (usersAccountId, uType)
 
 -- | TODO: is this a prism?
 getDomainName :: (ClientType, DomainOption) -> T.Text

@@ -1,4 +1,35 @@
-module Jenga.Common.HasJengaConfig where
+module Jenga.Common.HasJengaConfig
+  ( HasConfig(..)
+  , MkRoute
+  , asksM
+  , BaseURL(..)
+  , DomainOption(..)
+  , AuthCookieName(..)
+  , UserTypeCookieName(..)
+  , StripePlan(..)
+  , CompanySignupCode(..)
+  , SubscribeHash(..)
+  , OAuthClientID(..)
+  , OAuthClientSecret(..)
+  , FreeTrialInfo(..)
+  , FullRouteEncoder
+  , IEncoder
+  , StripeCode(..)
+  , Plans(..)
+  , getJsonConfigBase
+  , getJsonConfig
+  , renderFullRouteBE
+  , renderFullRouteFE
+  , Link
+  -- ^ Strong witness to the contained text being a valid link
+  , getLink
+  -- ^ Unwrap smart constructor
+  , isLocalHostEnv
+  , lookupSubscriptionCodeEnv
+  , matchesCompanyCodeEnv
+
+  )
+where
 
 import Data.Time.Clock
 import qualified Control.Monad.Fail as Fail
@@ -10,21 +41,8 @@ import qualified Data.ByteString as BS
 import Obelisk.Route as ObR
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
---import Network.Mail.Mime
 import Network.URI
 import Control.Applicative
-
--- class HasJengaTable dbHost db tbl where
---   tableRef :: PgTable dbHost db tbl
--- type PgTable dbHost db x = DatabaseEntity dbHost db (TableEntity x)
--- asksTableM
---   :: (HasJengaTable dbHost db tbl, Monad m)
---   => ReaderT cfg m (PgTable dbHost db tbl)
--- asksTableM = do
---   pure tableRef
-  -- r <- Control.Monad.Trans.Reader.ask
-  -- pure $ fromCfg r
-
 
 class HasConfig a b where
   fromCfg :: a -> b
@@ -43,6 +61,7 @@ asksM = do
 -- for type self-documentation
 newtype BaseURL = BaseURL { getBaseURL :: URI }
 newtype AuthCookieName = AuthCookieName { getAuthCookieName :: T.Text }
+newtype UserTypeCookieName = UserTypeCookieName { getUserTypeCookieName :: T.Text }
 newtype StripePlan = StripePlan { getStripePlan :: T.Text }
 newtype CompanySignupCode = CompanySignupCode { getCompanySignupCode :: T.Text }
 newtype SubscribeHash = SubscribeHash { getSubscribeHash :: T.Text } deriving (Eq, Ord)
@@ -66,19 +85,6 @@ getJsonConfig k cfgs = case getJsonConfigBase k cfgs of
   Just (Left err) -> Fail.fail $ "getJsonConfig invalid for key " <> T.unpack k <> " : " <> err
   Just (Right val) -> pure val
 
--- instance HasConfig ConfigEnv ConnectionPool where
---   fromCfg = _dbPool
--- instance HasConfig ConfigEnv EmailConfig where
---   fromCfg = _emailConfig
--- instance HasConfig ConfigEnv AdminEmail where
---   fromCfg = AdminEmail . _emailSendConfig
--- instance HasConfig ConfigEnv BaseURL where
---   fromCfg = BaseURL . _baseRoute
--- instance HasConfig ConfigEnv DomainOption where
---   fromCfg = _domainName
--- instance HasConfig ConfigEnv StripeConfig where
---   fromCfg = _stripeConfig
-
 renderFullRouteBE
   :: forall fe be cfg m.
      ( Monad m
@@ -86,11 +92,11 @@ renderFullRouteBE
      , HasConfig cfg BaseURL
      )
   => ObR.R be
-  -> ReaderT cfg m T.Text
+  -> ReaderT cfg m Link
 renderFullRouteBE route = do
   (enc :: FullRouteEncoder be fe)  <- asksM -- _routeEncoder
   BaseURL baseUrl <- asksM
-  pure $ (T.pack $ show baseUrl) <> renderBackendRoute enc route
+  pure . Link $ (T.pack $ show baseUrl) <> renderBackendRoute enc route
 
 renderFullRouteFE
   :: forall be fe m cfg.
@@ -99,11 +105,14 @@ renderFullRouteFE
      , HasConfig cfg BaseURL
      )
   => ObR.R fe
-  -> ReaderT cfg m T.Text
+  -> ReaderT cfg m Link
 renderFullRouteFE route = do
   (enc :: FullRouteEncoder be fe)  <- asksM -- _routeEncoder
   BaseURL baseUrl <- asksM
-  pure $ (T.pack $ show baseUrl) <> renderFrontendRoute enc route
+  pure . Link $ (T.pack $ show baseUrl) <> renderFrontendRoute enc route
+
+-- Strong witness to the contained text being a valid link
+newtype Link = Link { getLink :: T.Text }
 
 isLocalHostEnv
   :: ( MonadIO m
@@ -134,21 +143,6 @@ matchesCompanyCodeEnv
   => T.Text
   -> ReaderT cfg m Bool
 matchesCompanyCodeEnv c = (==c) . getCompanySignupCode <$>  asksM
-  -- let
-  --   x = do
-  --     (codeAsked >>= flip lookup (getPlans plans)) <|> defaultPlans plans
-  --     -- withCode codeAsked <|> defaultPlan plans
-  --     -- where
-  --     --   withCode c = do
-  --     --     hash <- c
-  --     --     lookup hash (getPlans plans)
-
-
-  -- pure $ maybe (defaultPlan plans)
-  --   ( \code -> Map.findWithDefault (defaultPlan plans) code (getPlans plans)
-  --   )
-  --   codeAsked
-
 
 newtype StripeCode = StripeCode T.Text
 

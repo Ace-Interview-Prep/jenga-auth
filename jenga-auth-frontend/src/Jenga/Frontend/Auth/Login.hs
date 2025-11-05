@@ -16,11 +16,9 @@ import Jenga.Common.Errors
 
 import Obelisk.Configs
 import Obelisk.Route.Frontend
-import Rhyolite.Api (ApiRequest(..))
 import Reflex.Dom.Core
 
 import Control.Monad.Fix
-import Data.Functor.Identity
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Control.Monad.Trans.Reader
@@ -39,7 +37,7 @@ data LoginData t m = LoginData
   }
 
 login_FRP ::
-  forall frontendRoute backendRoute publicRequest privateRequest cfg token t m.
+  forall frontendRoute backendRoute cfg t m.
   ( MonadFix m
   , MonadHold t m
   , DomBuilder t m
@@ -48,8 +46,8 @@ login_FRP ::
   , HasConfigs (Client m)
   , Prerender t m
   , Requester t m
-  , Request m ~ ApiRequest token publicRequest privateRequest
-  , Response m ~ Identity
+  -- , Request m ~ ApiRequest token publicRequest privateRequest
+  --, Response m ~ Identity
   , HasConfig cfg (FullRouteEncoder backendRoute frontendRoute)
   , HasConfig cfg BaseURL
   )

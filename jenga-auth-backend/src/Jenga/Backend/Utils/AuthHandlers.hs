@@ -1,9 +1,13 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+
 module Jenga.Backend.Utils.AuthHandlers where
 
 
 import Jenga.Backend.Utils.Query
+import Jenga.Backend.Utils.ErrorHandling
 import Jenga.Backend.Utils.HasConfig
 import Jenga.Backend.Utils.HasTable
+import Jenga.Backend.Utils.Email
 import Jenga.Backend.DB.Auth
 import Jenga.Backend.Utils.Snap
 import Jenga.Common.Cookie
@@ -27,6 +31,7 @@ import Data.Signed.ClientSession as CSK
 import Data.Pool
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
+import Control.Monad.Catch
 import Control.Monad.IO.Class
 import qualified Data.Aeson as A
 import Data.Either
@@ -333,3 +338,29 @@ privateRouteJSONOut key fma = do
         Just acctId@(AccountId (SqlSerial _)) -> do
           a <- fma acctId
           liftSnap $ writeJSON'' a
+
+type HasAdminReporting be cfg db n =
+  ( HasJengaTable Postgres db LogItemRow
+  , HasJengaTable Postgres db SendEmailTask
+  , HasConfig cfg (Pool Connection)
+  , HasConfig cfg AdminEmail
+  , HasJsonNotifyTbl be SendEmailTask n
+  )
+
+wsRequestAuth
+  :: forall db cfg be n e m a.
+     ( MonadIO m
+     , MonadCatch m
+     , Show e
+     , SpecificError (BackendError e)
+     , HasConfig cfg CS.Key
+     , HasAdminReporting be cfg db n
+     )
+  => Signed (Id Account)
+  -> (Id Account -> ReaderT cfg m (Either (BackendError e) a))
+  -> ReaderT cfg m (Either (BackendError e) a)
+wsRequestAuth authToken k = do
+  csk <- asksM
+  case readSignedWithKey csk authToken of
+    Just user -> withErrorReporting @db $ k user
+    Nothing -> pure . Left $ NoAuth

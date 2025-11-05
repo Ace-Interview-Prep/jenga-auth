@@ -19,8 +19,9 @@ getDomain baseUri_ =
   --- $ fromMaybe (error "no domain we can set cookies for")
   <$> URI.uriAuthority baseUri_
 
-chooseRouteFile :: HasConfigs m => m T.Text
-chooseRouteFile = do
+newtype RouteFilePath = RouteFilePath { getRouteFile :: T.Text }
+chooseJengaRouteFile :: HasConfigs m => m RouteFilePath
+chooseJengaRouteFile = fmap RouteFilePath $ do
   route_ <- getConfig "common/route"
   case parseURI =<< T.unpack . T.strip . T.decodeUtf8 <$> route_ of
     Nothing -> pure "common/route"

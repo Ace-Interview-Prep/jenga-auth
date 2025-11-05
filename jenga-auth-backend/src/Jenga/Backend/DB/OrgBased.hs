@@ -90,15 +90,48 @@ putAccountRelations
   -> PgTable Postgres db OrganizationEmails
   -> PrimaryKey Account Identity
   -> IsUserType
-  -> Pg ()
+  -> Pg (Either UserSignupError ())
 putAccountRelations uTypeTbl orgTable aid = \case
   IsGroupUser email orgName -> do
+    tryPutGroupUser uTypeTbl orgTable aid email orgName
+  IsSelf -> do
     putNewUserType uTypeTbl aid Nothing
-    putNewOrgEmail orgTable (NewUserEmail email orgName)
-  IsSubscriber -> putNewUserType uTypeTbl aid Nothing
+    pure $ Right ()
   IsCompany orgName -> do
     putNewUserType uTypeTbl aid (Just orgName)
+    pure $ Right ()
+--  acctID | companyID  | userType
+-- --------+------------+----------
+--     106 | Ace        | Admin
 
+
+tryPutGroupUser
+  :: Database Postgres db
+  => PgTable Postgres db UserTypeTable
+  -> PgTable Postgres db OrganizationEmails
+  -> PrimaryKey Account Identity
+  -> EmailAddress
+  -> T.Text
+  -> Pg (Either UserSignupError ())
+tryPutGroupUser uTypeTbl orgTable aid email orgName = do
+  lookupCompanyInUserTypeTable uTypeTbl orgName >>= \case
+    Nothing -> pure $ Left NoLinkedOrganization
+    Just _ -> do
+      putNewUserType uTypeTbl aid Nothing
+      putNewOrgEmail orgTable (NewUserEmail email orgName)
+      pure $ Right ()
+
+lookupCompanyInUserTypeTable
+  :: Database Postgres db
+  => PgTable Postgres db UserTypeTable
+  -> T.Text
+  -> Pg (Maybe (UserTypeTable Identity))
+lookupCompanyInUserTypeTable uTypeTbl orgName = do
+  runSelectReturningOne $ select $ do
+    uTypes <- all_ uTypeTbl
+    guard_ $ _userType_userType uTypes ==. (val_ Admin)
+    guard_ $ _userType_companyID uTypes ==. (val_ $ Just orgName)
+    pure uTypes
 
 getInviteLinkByCode
   :: Database Postgres db

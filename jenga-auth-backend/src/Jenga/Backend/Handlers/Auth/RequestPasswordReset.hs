@@ -31,7 +31,7 @@ import qualified Text.Email.Validate as EmailValidate
 import qualified Data.Text.Encoding as T
 
 requestPasswordResetHandler
-  :: forall db beR cfg m frontendRoute n.
+  :: forall db beR n cfg m frontendRoute.
      ( MonadIO m
      , Database Postgres db
      , HasConfig cfg CS.Key
@@ -73,6 +73,6 @@ requestPasswordResetHandler resetRoute (Email rawEmail) = do
                 el "div" $ do
                   el "div" $ text "Password reset requested"
                   el "div" $ text "go the following address to reset your password:"
-                  el "div" $ text resetLink
+                  el "div" $ text $ getLink resetLink
                   el "div" $ text "if you didn't request this action, please ignore this email."
               pure $ Right ()

@@ -231,9 +231,9 @@ performJSONRequestResponseAnnotatedWithHeaders
   -> ReaderT cfg m (Event t (Either T.Text fromJson))
 performJSONRequestResponseAnnotatedWithHeaders route headers jsonEv = do
   evXhrResponse :: Event t XhrResponse <- performJSONRequestWithHeaders @fe route headers jsonEv
-  routeText <- renderFullRouteBE @fe route
+  routeLink <- renderFullRouteBE @fe route
   pure $ leftmost
-    [ decodeXhrAnnotate routeText <$> evXhrResponse
+    [ decodeXhrAnnotate (getLink routeLink) <$> evXhrResponse
     ]
 
 decodeXhrAnnotate
@@ -315,7 +315,7 @@ performJSONRequestWithHeaders
   -> ReaderT cfg m (Event t XhrResponse)
 performJSONRequestWithHeaders route headers jsonEv = do
   routeText <- (renderFullRouteBE @fe route)
-  performRequestAsync $ withHeaders headers . withCred . postJson routeText <$> jsonEv
+  performRequestAsync $ withHeaders headers . withCred . postJson (getLink routeText) <$> jsonEv
 
 
 performJSONRequest
@@ -333,7 +333,7 @@ performJSONRequest
   -> ReaderT cfg m (Event t XhrResponse)
 performJSONRequest route jsonEv = do
   routeText <- (renderFullRouteBE @fe route)
-  performRequestAsync $ withCred <$> postJson routeText <$> jsonEv
+  performRequestAsync $ withCred <$> postJson (getLink routeText) <$> jsonEv
 
 withCred :: XhrRequest a -> XhrRequest a
 withCred xhr = xhr & xhrRequest_config . xhrRequestConfig_withCredentials .~ True

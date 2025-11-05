@@ -40,12 +40,17 @@ data ClientType = Mobile | Web deriving (Show, Read)
 data IsUserType
   = IsCompany OrgName
   | IsGroupUser EmailAddress OrgName
-  | IsSubscriber
+  | IsSelf
+  -- most of the time, this means they are a direct subscriber
+  -- or the service is free
+
 
 type OrgName = T.Text
 
 -- | Used for password reset
 newtype Email = Email { unEmail :: T.Text } deriving (Show, Eq, Ord, Generic)
+instance ToJSON Email
+instance FromJSON Email
 
 newtype Username = Username { getUsername :: T.Text } deriving (Show, Eq)
 
@@ -95,8 +100,12 @@ instance SpecificError (BackendError NoFreeTrialCode)
 instance SpecificError (BackendError AdminSignupError)
 instance SpecificError (BackendError InviteError)
 instance SpecificError (BackendError UnsubscribeError)
+instance SpecificError (BackendError UserSignupError)
 
-data UserType = Self | Admin deriving (Eq, Show, Read, Generic)
+-- | TODO: we currently have zero actual support for creating a
+-- | super user, however it is here to ensure future support.
+-- | such as a handler which requires this account ID is the super user
+data UserType = Self | Admin | SuperUser deriving (Eq, Show, Read, Generic)
 instance FromJSON UserType
 instance ToJSON UserType
 
@@ -156,6 +165,7 @@ data UserSignupError
   | AccountExists
   | BadSignupEmail
   | NoEmailSent
+  | NoLinkedOrganization
   deriving (Eq,Show,Generic)
 instance ToJSON UserSignupError
 instance FromJSON UserSignupError
@@ -164,6 +174,7 @@ instance ShowUser UserSignupError where
   showUser AccountExists = "Account already exists"
   showUser BadSignupEmail = "Please provide a valid email"
   showUser NoEmailSent = "We could not send email"
+  showUser NoLinkedOrganization = "You seem to be joining under an organization that doesn't exist"
 
 data UnsubscribeError = EmailNotFound deriving (Show,Eq,Generic)
 instance FromJSON UnsubscribeError

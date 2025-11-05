@@ -8,15 +8,6 @@ import Control.Monad.Trans.Reader
 
 import Web.ClientSession as CS
 
-import Database.Beam.Postgres
-import Database.Beam
---import Backend.DB (db)
--- import Backend.DB.UserInfo
--- import Backend.DB.OrgBased
-
-
--- import Common.Schema
--- import Common.Route
 import Jenga.Backend.Utils.Email
 import Jenga.Backend.Utils.HasConfig
 import Jenga.Common.Errors
@@ -26,14 +17,15 @@ import Jenga.Common.Auth
 import Rhyolite.Account
 import Rhyolite.Backend.Account
 import Obelisk.Route
-import Reflex.Dom.Core as R
+import Database.Beam.Postgres
+import Database.Beam
+import Reflex.Dom.Core as R hiding (Link)
 import Network.Mail.Mime
 import Data.Signed
 
 import Data.Pool
 import Data.Bifunctor
 import Text.Email.Validate
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
 
@@ -53,38 +45,29 @@ createNewAccount
   => EmailAddress
   -> IsUserType
   -> frontendRoute (Signed PasswordResetToken)
-  -> ReaderT cfg m (Either (BackendError UserSignupError) T.Text)
-  -- TODO: use Link type with no exported constructor
+  -> ReaderT cfg m (Either (BackendError UserSignupError) Link)
 createNewAccount email isUserType resetRoute = do
-  csk <- asksM -- _clientSessionKey
+  csk <- asksM
   (uTypeTbl :: PgTable Postgres db UserTypeTable) <- asksTableM
   (orgTbl :: PgTable Postgres db OrganizationEmails) <- asksTableM
   (acctsTbl :: PgTable Postgres db Account) <- asksTableM
-  --routeEncoder <- asksM
   (accountsTable :: PgTable Postgres db Account) <- asksTableM
-  (isNew, aid) <- withDbEnv $
-    ensureAccountExists' acctsTbl $ T.decodeUtf8 . toByteString $ email
-  --let (AccountId (SqlSerial rawID)) = aid
-  -- emailCofoundersWithEnv $ LT.fromStrict . T.pack $
-  --   "AccountID: " <> show rawID  <> " for email: " <> show email
-  case isNew of
-    False -> pure $ Left . BUserError $ AccountExists
-    True -> do
-      mNonce <- withDbEnv $ do
-        putAccountRelations uTypeTbl orgTbl aid isUserType
-        newNonce accountsTable aid
-      case mNonce of
-        Nothing -> pure $ Left . BUserError $ FailedMakeResetToken
-        Just noncense -> do
-          token <- withDbEnv $ passwordResetToken csk aid noncense
-          resetLink <- renderFullRouteFE @beR $ ((resetRoute :/ token) :: R frontendRoute)
-          --resetLink = renderFrontendRoute routeEncoder $ resetRoute :/ token
-          pure $ Right resetLink
+  (withDbEnv $ ensureAccountExists' acctsTbl $ T.decodeUtf8 . toByteString $ email) >>= \case
+    (False, _) -> pure $ Left . BUserError $ AccountExists
+    (True, aid) -> do
+      (withDbEnv $ putAccountRelations uTypeTbl orgTbl aid isUserType) >>= \case
+        Left noOrgErr -> pure . Left . BCritical $ noOrgErr
+        Right () -> do
+          (withDbEnv $ newNonce accountsTable aid) >>= \case
+            Nothing -> pure $ Left . BUserError $ FailedMakeResetToken
+            Just nonce -> do
+              token <- withDbEnv $ passwordResetToken csk aid nonce
+              resetLink <- renderFullRouteFE @beR $ ((resetRoute :/ token) :: R frontendRoute)
+              pure $ Right resetLink
 
 createNewAccountWithSetupEmail
   :: forall db beR cfg be m n frontendRoute x.
      ( MonadIO m
-     --, EmailM cfg db m n be
      , HasJsonNotifyTbl be SendEmailTask n
      , Database Postgres db
      , HasConfig cfg AdminEmail
@@ -100,7 +83,7 @@ createNewAccountWithSetupEmail
   => EmailAddress
   -> IsUserType
   -> frontendRoute (Signed PasswordResetToken)
-  -> (T.Text -> StaticWidget x ())
+  -> (Link -> StaticWidget x ())
   -> ReaderT cfg m (Either (BackendError UserSignupError)  ())
 createNewAccountWithSetupEmail email isUserType resetRoute mkEmail = do
   (createNewAccount @db @beR email isUserType resetRoute) >>= (\case
