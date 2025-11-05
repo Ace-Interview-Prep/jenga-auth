@@ -3,6 +3,7 @@
 
 module Jenga.Frontend.Platform where
 
+import Jenga.Common.Auth
 import Jenga.Common.HasJengaConfig
 import Obelisk.Configs
 import Language.Javascript.JSaddle
@@ -72,3 +73,11 @@ isNotMobile = do
   where
     s :: String -> String
     s = id
+
+clientType :: ClientType
+clientType =
+#ifdef android_HOST_OS
+  Mobile
+#else
+  Web
+#endif

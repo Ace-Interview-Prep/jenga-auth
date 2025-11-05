@@ -12,20 +12,25 @@
 module Jenga.Common.Auth where
 
 import Jenga.Common.Errors
+import Jenga.Common.BeamExtras
 
 import Web.Stripe.Error
+import Rhyolite.Account
 import Database.Beam
 #ifndef ghcjs_HOST_OS
 import Data.Text.Normalize
 #endif
 import Text.Email.Validate
 import qualified Data.Text as T
+import Data.Signed
 import Data.Aeson
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Lazy as LBS
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.String
+
+type AuthToken = Signed (Id Account)
 
 clientTypeHeader :: IsString s => s
 clientTypeHeader = "X-ClientType"
@@ -92,6 +97,8 @@ instance SpecificError (BackendError InviteError)
 instance SpecificError (BackendError UnsubscribeError)
 
 data UserType = Self | Admin deriving (Eq, Show, Read, Generic)
+instance FromJSON UserType
+instance ToJSON UserType
 
 data FreeTrialError
   = InvalidEmail_FreeTrial

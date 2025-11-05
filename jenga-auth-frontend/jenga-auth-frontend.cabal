@@ -72,7 +72,14 @@ library
     Jenga.Frontend.Scroll
     Jenga.Frontend.Shuffle
     Jenga.Frontend.TimeExtras
-
+    Jenga.Frontend.Auth.Authentication
+    Jenga.Frontend.Auth.CompanySignup
+    Jenga.Frontend.Auth.Login
+    Jenga.Frontend.Auth.RedeemLink
+    Jenga.Frontend.Auth.RequestPasswordReset
+    Jenga.Frontend.Auth.ResetPassword
+    Jenga.Frontend.Auth.Subscribe.Paywall
+    Jenga.Frontend.Auth.Subscribe.StartFreeTrial
 
   ghc-options: -Wall
                -- -Wunused-packages
