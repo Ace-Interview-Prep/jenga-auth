@@ -92,7 +92,7 @@ clogSend
 clogSend route a = do
   clog a
   logRoute <- renderFullRouteBE @fe route
-  req <- postJson logRoute . show <$> liftJSM (valToStr a)
+  req <- postJson (getLink logRoute) . show <$> liftJSM (valToStr a)
   _ <- newXMLHttpRequestWithError req $ \err ->
     let
       showXhr = \case
