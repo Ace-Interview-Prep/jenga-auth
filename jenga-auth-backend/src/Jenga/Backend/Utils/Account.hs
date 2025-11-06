@@ -19,7 +19,6 @@ import Rhyolite.Backend.Account
 import Obelisk.Route
 import Database.Beam.Postgres
 import Database.Beam
-import Reflex.Dom.Core as R hiding (Link)
 import Network.Mail.Mime
 import Data.Signed
 
@@ -83,13 +82,13 @@ createNewAccountWithSetupEmail
   => EmailAddress
   -> IsUserType
   -> frontendRoute (Signed PasswordResetToken)
-  -> (Link -> StaticWidget x ())
+  -> (Link -> MkEmail x)
   -> ReaderT cfg m (Either (BackendError UserSignupError)  ())
 createNewAccountWithSetupEmail email isUserType resetRoute mkEmail = do
   (createNewAccount @db @beR email isUserType resetRoute) >>= (\case
     Left e -> pure $ Left e
     Right link_ -> do
-      x <- newEmailHtml @db [to] "Email Confirmation" $ mkEmail link_
+      x <- newMkEmailHtml @db [to] $ mkEmail link_
       pure $ first (\_ -> BCritical NoEmailSent) x)
   where
     to = Address

@@ -17,7 +17,6 @@ import Jenga.Common.Auth
 import Rhyolite.Account
 import Database.Beam.Schema
 import Database.Beam.Postgres
-import qualified Reflex.Dom.Core as Rfx
 import Snap
 
 import Data.Pool
@@ -70,7 +69,7 @@ addUsersHandler
   => Id Account
   -> T.Text
   -> frontendRoute (Signed PasswordResetToken)
-  -> (T.Text -> Rfx.StaticWidget x ())
+  -> (Link -> MkEmail x)
   -- ^ Email to send user
   -> ReaderT cfg m (Either (BackendError AddUsersError) ())
 addUsersHandler acctID emails resetRoute mkEmail = do

@@ -247,18 +247,14 @@ instance ShowUser NoFreeTrialCode where
   showUser NoFreeTrialCode = "no free trial code found for this account"
 
 data AdminSignupError
-  = InvalidAdminCode
-  | AlreadySignedUp
-  | FailedMkNonce_AdminSignup
-  | FailedMkEmail_AdminSignup
+  = AdminSignupError UserSignupError
+  | InvalidAdminCode
   deriving (Eq,Show,Generic)
 instance ToJSON AdminSignupError
 instance FromJSON AdminSignupError
 instance ShowUser AdminSignupError where
   showUser InvalidAdminCode = "invalid code, please ask lauren@aceinterviewprep.io for this code"
-  showUser AlreadySignedUp = "Email already in use, try logging in? or recover password"
-  showUser FailedMkNonce_AdminSignup = "Nonce Error: reset link is likely expired, please request recover password"
-  showUser FailedMkEmail_AdminSignup = "Unable to send email"
+  showUser (AdminSignupError e) = "For Admin User: " <> showUser e
 
 data CancelSubError
   = NoSubOrAccount

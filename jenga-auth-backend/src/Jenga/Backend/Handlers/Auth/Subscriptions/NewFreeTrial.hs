@@ -13,7 +13,6 @@ import Jenga.Common.Auth
 import Database.Beam.Postgres
 import Database.Beam.Schema
 import Rhyolite.Account
-import Reflex.Dom.Core as Rfx
 
 import Control.Monad.Trans.Reader
 import Control.Monad.IO.Class
@@ -45,19 +44,15 @@ newFreeTrialHandler
      )
   => (Maybe T.Text, Email)
   -> frontendRoute (Signed PasswordResetToken)
-  -> (T.Text -> StaticWidget x ())
+  -> (Link -> MkEmail x)
   -> ReaderT cfg m (Either (BackendError FreeTrialError) ())
 newFreeTrialHandler (mCode,email) resetRoute mkEmail = do
   (freeTrialTbl :: PgTable Postgres db FreeTrial) <- asksTableM
   (acctsTbl :: PgTable Postgres db Account) <- asksTableM
-
-
-  -- TODO
-  -- let validatedEmail = fromRight (error "failed parse email: freeTrial") . validate . T.encodeUtf8 . unEmail $ email
   case validate . T.encodeUtf8 . unEmail $ email of
     Left _ -> pure $ Left . BUserError $ InvalidEmail_FreeTrial
     Right validatedEmail -> do
-      createNewAccountWithSetupEmail @db @beR validatedEmail IsSubscriber resetRoute mkEmail >>= \case
+      createNewAccountWithSetupEmail @db @beR validatedEmail IsSelf resetRoute mkEmail >>= \case
         Left e -> pure $ Left $ FreeTrial_Signup <$> e
         Right () -> do
           (withDbEnv $ getUserByEmail acctsTbl $ unEmail email) >>= \case

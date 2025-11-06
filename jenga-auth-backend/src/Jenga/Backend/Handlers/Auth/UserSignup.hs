@@ -12,7 +12,6 @@ import Rhyolite.Account
 import Network.Mail.Mime
 import Database.Beam
 import Database.Beam.Postgres
-import Reflex.Dom.Core (StaticWidget)
 
 import Data.Pool
 import Web.ClientSession as CS
@@ -53,12 +52,11 @@ userSignup
      , HasJengaTable Postgres db SendEmailTask
      , HasJsonNotifyTbl be SendEmailTask n
      )
-  => T.Text -- ^ email subject
-  -> T.Text -- ^ email address
+  => T.Text -- ^ email address
   -> frontendRoute (Signed PasswordResetToken)
-  -> (Link -> StaticWidget x ())  -- ^ email body
+  -> (Link -> MkEmail x)  -- ^ email body
   -> ReaderT cfg m (Either (BackendError UserSignupError) ())
-userSignup subject email resetRoute mkBody = do
+userSignup email resetRoute mkBody = do
   case emailAddress (T.encodeUtf8 email) of
     Nothing -> pure . Left . BUserError $ BadSignupEmail
     Just emailParsed -> do
@@ -70,5 +68,5 @@ userSignup subject email resetRoute mkBody = do
               { addressName = Nothing
               , addressEmail = email
               }
-          x <- newEmailHtml @db [to] subject $ mkBody link
+          x <- newMkEmailHtml @db [to] $ mkBody link
           pure $ first (\_ -> BCritical NoEmailSent) x

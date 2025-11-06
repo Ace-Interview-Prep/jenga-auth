@@ -38,6 +38,11 @@ import qualified Data.ByteString.Lazy as LBS
 newtype AdminEmail = AdminEmail { getAdminEmail :: Address }
 
 
+data MkEmail x = MkEmail
+  { _mkEmail_subject :: T.Text
+  , _mkEmail_body :: Rfx.StaticWidget x ()
+  }
+
 showPart :: Part -> String
 showPart = \case { PartContent bs -> T.unpack . T.decodeUtf8 . LBS.toStrict $ bs ; _ -> ""} . partContent
 
@@ -128,6 +133,18 @@ type EmailM cfg db m n be =
   , HasJengaTable Postgres db SendEmailTask
   , HasJsonNotifyTbl be SendEmailTask n
   )
+
+
+newMkEmailHtml
+  :: forall db be m cfg n x.
+     ( MonadIO m
+     , EmailM cfg db m n be
+     )
+  => [Address]
+  -> MkEmail x
+  -> ReaderT cfg m (Either T.Text ())
+newMkEmailHtml toPlural mkEmail = do --subject widget = do
+  newEmailHtml @db toPlural (_mkEmail_subject mkEmail) (_mkEmail_body mkEmail)
 
 -- | TODO(galen) can we run ReaderT cfg in the context of StaticWidget?
 newEmailHtml

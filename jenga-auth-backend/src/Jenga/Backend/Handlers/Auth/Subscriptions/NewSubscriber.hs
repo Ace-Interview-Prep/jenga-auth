@@ -1,20 +1,7 @@
 module Jenga.Backend.Handlers.Auth.Subscriptions.NewSubscriber where
 
--- import Backend.DB (db, toAcctID)
 import Jenga.Backend.DB.Subscriptions
 import Jenga.Backend.DB.OrgBased
--- import Backend.DB.UserInfo
---   ( ensureAccountExists'
---   , deleteFailedAccount
---   , putNewUserType
---   , getUsersEmail
---   )
--- import Backend.Config
--- import Backend.Utils.Email
--- import Backend.Utils.Stuff (printT)
--- import Common.Types
--- import Common.Schema
--- import Common.Route
 import Jenga.Backend.DB.Auth
 import Jenga.Backend.Utils.HasConfig
 import Jenga.Backend.Utils.HasTable
@@ -173,7 +160,7 @@ newSubscriberHandler acctID form resetRoute = do
                                     Rfx.el "div" $ do
                                       Rfx.el "div" $ Rfx.text "New account creation requested"
                                       Rfx.el "div" $ Rfx.text "go the following address to set your password:"
-                                      Rfx.el "div" $ Rfx.text link
+                                      Rfx.el "div" $ Rfx.text $ getLink link
                                       Rfx.el "div" $ Rfx.text ""
                                       Rfx.el "div" $ Rfx.text "if you didn't request this action, please ignore this email."
                                   case sendEmail of

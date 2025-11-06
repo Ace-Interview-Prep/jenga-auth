@@ -9,7 +9,6 @@ import Jenga.Common.Errors
 import Jenga.Common.Auth
 import Jenga.Common.Schema
 
-import Reflex.Dom.Core
 import Rhyolite.Account
 import Database.Beam.Postgres
 import Database.Beam.Schema
@@ -41,7 +40,7 @@ redeemLinkHandler
      )
   => (T.Text, Email)
   -> frontendRoute (Signed PasswordResetToken)
-  -> (T.Text -> StaticWidget x ())
+  -> (Link -> MkEmail x)
   -> ReaderT cfg m (Either (BackendError RedeemLinkError) ())
 redeemLinkHandler (codeLink, Email email) resetRoute mkEmail = do
   (inviteTbl :: PgTable Postgres db InviteLink) <- asksTableM
