@@ -74,7 +74,7 @@ library
     Jenga.Frontend.TimeExtras
     Jenga.Frontend.Auth.Authentication
     Jenga.Frontend.Auth.CompanySignup
-    Jenga.Frontend.Auth.Signup
+    Jenga.Frontend.Auth.UserSignup
     Jenga.Frontend.Auth.Login
     Jenga.Frontend.Auth.RedeemLink
     Jenga.Frontend.Auth.RequestPasswordReset
