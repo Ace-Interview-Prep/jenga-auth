@@ -88,6 +88,7 @@ library
     Jenga.Backend.Utils.Log
     Jenga.Backend.Utils.Markdown
     Jenga.Backend.Utils.Query
+    Jenga.Backend.Utils.Migrations
     Jenga.Backend.Utils.Snap
     Jenga.Backend.Utils.Email
 
