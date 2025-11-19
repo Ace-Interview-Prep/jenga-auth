@@ -18,8 +18,7 @@ import Web.ClientSession as CS
 import Data.Signed
 import Control.Monad.Trans.Reader
 import Data.Bifunctor
-import Text.Email.Validate
-import qualified Data.Text as T
+import Text.Email.Validate as EmailValidate
 import qualified Data.Text.Encoding as T
 
 -- userSignup
@@ -37,7 +36,7 @@ import qualified Data.Text.Encoding as T
 
 
 --let mkBody = body <> "\n" <> link -- plaintext emali
-userSignup
+userSignupHandler
   :: forall db beR be frontendRoute m cfg x n.
      ( MonadIO m
      , Database Postgres db
@@ -52,12 +51,12 @@ userSignup
      , HasJengaTable Postgres db SendEmailTask
      , HasJsonNotifyTbl be SendEmailTask n
      )
-  => T.Text -- ^ email address
+  => EmailValidate.EmailAddress -- ^ email address
   -> frontendRoute (Signed PasswordResetToken)
   -> (Link -> MkEmail x)  -- ^ email body
   -> ReaderT cfg m (Either (BackendError UserSignupError) ())
-userSignup email resetRoute mkBody = do
-  case emailAddress (T.encodeUtf8 email) of
+userSignupHandler email resetRoute mkBody = do
+  case EmailValidate.emailAddress (EmailValidate.toByteString email) of
     Nothing -> pure . Left . BUserError $ BadSignupEmail
     Just emailParsed -> do
       createNewAccount @db @beR (emailParsed) IsSelf resetRoute >>= \case
@@ -66,7 +65,7 @@ userSignup email resetRoute mkBody = do
           let
             to = Address
               { addressName = Nothing
-              , addressEmail = email
+              , addressEmail = T.decodeUtf8 . toByteString $ email
               }
           x <- newMkEmailHtml @db [to] $ mkBody link
           pure $ first (\_ -> BCritical NoEmailSent) x

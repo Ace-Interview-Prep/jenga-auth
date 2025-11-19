@@ -1,6 +1,6 @@
 module Jenga.Backend.Handlers.Auth.OrgBased.Invite where
 
-import Jenga.Backend.Handlers.Auth.UserSignup (userSignup)
+import Jenga.Backend.Handlers.Auth.UserSignup (userSignupHandler)
 import Jenga.Backend.Utils.HasConfig
 import Jenga.Backend.Utils.HasTable
 import Jenga.Backend.Utils.Email
@@ -23,6 +23,7 @@ import Control.Monad.IO.Class
 import Data.Signed
 import Data.Bifunctor
 import Data.Maybe
+import Text.Email.Validate as EmailValidate
 import qualified Data.Text as T
 
 inviteHandler
@@ -41,7 +42,7 @@ inviteHandler
      , HasJsonNotifyTbl be SendEmailTask n
 
      )
-  => T.Text
+  => EmailValidate.EmailAddress
   -> Id Account
   -> frontendRoute (Signed PasswordResetToken)
   -> (T.Text -> Link -> MkEmail x)  -- ^ email body
@@ -49,7 +50,7 @@ inviteHandler
 inviteHandler email inviter resetRoute mkBody = do
   (acctTbl :: PgTable Postgres db Account) <- asksTableM
   user <- (fmap.fmap) _account_email $ withDbEnv $ runSelectReturningOne $ lookup_ acctTbl inviter
-  signupRes <- userSignup @db @beR
+  signupRes <- userSignupHandler @db @beR
     email
     resetRoute
     (\link_ -> mkBody (fromMaybe "another user" user) link_)
