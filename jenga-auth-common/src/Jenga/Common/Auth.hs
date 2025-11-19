@@ -109,6 +109,30 @@ data UserType = Self | Admin | SuperUser deriving (Eq, Show, Read, Generic)
 instance FromJSON UserType
 instance ToJSON UserType
 
+-- New idea:
+data Self' = Self' deriving (Eq, Show, Read, Generic)
+data Admin' = Admin' | OwnedS Self' deriving (Eq, Show, Read, Generic)
+data SuperUser' = SuperUser' | OwnedA Admin' deriving (Eq, Show, Read, Generic)
+
+-- g :: UserType t => t -> m a
+
+f1 :: SuperUser' -> Int
+f1 = \case
+  SuperUser' -> 0
+  OwnedA user -> case user of
+    Admin' -> 1
+    OwnedS Self' -> 2
+--OR
+f2 :: Admin' -> Int
+f2 = \case
+  Admin' -> 0
+  OwnedS Self' -> 1
+-- OR
+f3 :: Self' -> Int
+f3 = \case
+  Self' -> 0
+
+
 data FreeTrialError
   = InvalidEmail_FreeTrial
   | FreeTrial_Signup UserSignupError
