@@ -55,7 +55,7 @@ sendEmailIfNotLocal cfg mail = do
     True -> do
       liftIO $ putStrLn "LOCALHOST EMAIL"
       liftIO . print . mailTo $ mail
-      liftIO . print . mconcat . fmap showPart . mconcat . mailParts $ mail
+      liftIO . putStrLn . mconcat . fmap showPart . mconcat . mailParts $ mail
       pure $ Right ()
     False -> do
       x :: (Either IOException (Either EmailError ())) <- liftIO $ CE.try $ sendEmail cfg mail

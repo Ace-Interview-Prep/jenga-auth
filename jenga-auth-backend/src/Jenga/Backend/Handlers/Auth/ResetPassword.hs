@@ -1,23 +1,17 @@
 module Jenga.Backend.Handlers.Auth.ResetPassword where
 
--- import Backend.DB (db, runSerializable)
 import Jenga.Backend.DB.Auth
 
 import Jenga.Backend.Utils.Query
 import Jenga.Backend.Utils.HasConfig
 import Jenga.Backend.Utils.HasTable
 import Jenga.Backend.Utils.Email
--- import Backend.Utils.Stuff (printT)
 import Jenga.Common.Schema
--- import Common.Types
--- import Common.Route
--- import Common.ChatSchema (AuthToken)
 import Jenga.Common.BeamExtras
 import Jenga.Common.Errors
 import Jenga.Common.Auth
 
 import Rhyolite.Account
-import Reflex.Dom.Core
 import Database.Beam.Schema
 import Database.Beam.Postgres
 
@@ -45,7 +39,7 @@ resetPasswordHandler
      , HasJsonNotifyTbl Postgres SendEmailTask n
      )
   => (Signed PasswordResetToken, T.Text)
-  -> (UserType -> PasswordState -> (Subject, StaticWidget x ()))
+  -> (UserType -> PasswordState -> MkEmail x)
   -> ReaderT cfg m (Either (BackendError ResetPasswordError) (Signed (Id Account), UserType))
 resetPasswordHandler (signedToken, newPass) chooseWelcomeLetter = do
   (acctsTbl :: PgTable Postgres db Account) <- asksTableM
@@ -79,8 +73,9 @@ resetPasswordHandler (signedToken, newPass) chooseWelcomeLetter = do
                     { addressName = Nothing
                     , addressEmail = _account_email acct'
                     }
-                  (Subject subject, email) = chooseWelcomeLetter uType . toPasswordState . isJust . _account_password $ acct'
-                newEmailHtml @db [to] subject email >>= \case
+                  passwordState = toPasswordState . isJust . _account_password $ acct'
+                  --(Subject subject, email) = chooseWelcomeLetter uType . toPasswordState . isJust . _account_password $ acct'
+                newMkEmailHtml @db [to] (chooseWelcomeLetter uType passwordState) >>= \case
                   Left _ -> pure . Left . BCritical $ Reset_NoEmailSent
                   Right () -> do
                     signed <- liftIO $ signWithKey csk ( aid )
@@ -88,6 +83,3 @@ resetPasswordHandler (signedToken, newPass) chooseWelcomeLetter = do
 
 newtype Subject = Subject { getSubject :: T.Text }
 data PasswordState = NoPassword | HasPassword deriving Eq
-
-adminWelcomeLetter :: T.Text
-adminWelcomeLetter = "Welcome to your Ace admin account!\n With your newly gained admin access, you are now equipped to enable user accounts, monitor signups, and track user progress—all from a user-friendly dashboard designed to simplify your user management tasks.\nShould you have any questions or require assistance, our dedicated support team is here to help. Feel free to reach out to Lauren at lauren@aceinterviewprep.io; she is always ready to assist you.\nThank you for choosing Ace to upskill and empower your job seekers."
