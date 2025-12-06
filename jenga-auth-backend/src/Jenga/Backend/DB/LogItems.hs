@@ -34,10 +34,12 @@ getNonUrgentLogItems tbl since = do
   runSelectReturningList $ select $ do
     --all_ (_db_reporting db)
     filter_
-      (\logItemR -> _logItemRow_hasBeenSent logItemR ==. (val_ False)
-                    &&.
-                    _logItemRow_isUrgent logItemR ==. (val_ False)
-                    &&. _logItemRow_insertionTime logItemR <. (val_ sinceUtc)
+      (\logItemR ->
+         -- _logItemRow_hasBeenSent logItemR ==. (val_ False)
+         -- &&.
+         _logItemRow_isUrgent logItemR ==. (val_ False)
+         &&.
+         _logItemRow_insertionTime logItemR >. (val_ sinceUtc)
       ) (all_ tbl)
 
 markLogSent
