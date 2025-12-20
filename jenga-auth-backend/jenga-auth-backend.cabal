@@ -67,6 +67,7 @@ library
                , vector
                , template-haskell
                , lamarckian
+               , lamarckian-core
 
   exposed-modules:
     Jenga.Backend.DB.Auth
