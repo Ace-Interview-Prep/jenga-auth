@@ -43,6 +43,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Network.URI
 import Control.Applicative
+import GHC.Generics
 
 class HasConfig a b where
   fromCfg :: a -> b
@@ -112,7 +113,9 @@ renderFullRouteFE route = do
   pure . Link $ (T.pack $ show baseUrl) <> renderFrontendRoute enc route
 
 -- Strong witness to the contained text being a valid link
-newtype Link = Link { getLink :: T.Text }
+newtype Link = Link { getLink :: T.Text } deriving Generic
+instance ToJSON Link
+instance FromJSON Link
 
 isLocalHostEnv
   :: ( MonadIO m
