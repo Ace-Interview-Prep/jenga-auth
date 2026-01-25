@@ -146,6 +146,24 @@ newMkEmailHtml
 newMkEmailHtml toPlural mkEmail = do --subject widget = do
   newEmailHtml @db toPlural (_mkEmail_subject mkEmail) (_mkEmail_body mkEmail)
 
+buildNewEmailHtml
+  :: forall m cfg x.
+     ( MonadIO m
+     -- , EmailM cfg db m n be
+     , HasConfig cfg AdminEmail
+     )
+  => [Address]
+  -> T.Text
+  -> Rfx.StaticWidget x ()
+  -> ReaderT cfg m [Mail]
+buildNewEmailHtml toPlural subject widget = do
+  body <- liftIO $ fmap snd $ Rfx.renderStatic widget
+  from <- getAdminEmail <$> asksM -- toAddress <$> asksCfg _emailSendConfig
+  forM toPlural $ \to -> do
+    liftIO $ simpleMail to from subject "" (LT.fromStrict . T.decodeUtf8 $ body) []
+  --pure $ Right ()
+
+
 -- | TODO(galen) can we run ReaderT cfg in the context of StaticWidget?
 newEmailHtml
   :: forall db be m cfg n x.
