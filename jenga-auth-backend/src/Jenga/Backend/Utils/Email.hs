@@ -55,7 +55,7 @@ sendEmailIfNotLocal cfg mail = do
     True -> do
       liftIO $ putStrLn "LOCALHOST EMAIL"
       liftIO . print . mailTo $ mail
-      liftIO . print . mconcat . fmap showPart . mconcat . mailParts $ mail
+      liftIO . putStrLn . take 1000  . mconcat . fmap showPart . mconcat . mailParts $ mail
       pure $ Right ()
     False -> do
       x :: (Either IOException (Either EmailError ())) <- liftIO $ CE.try $ sendEmail cfg mail
@@ -83,7 +83,8 @@ sendEmailIfNotLocalOrUnsubscribed mail = do
     True -> do
       liftIO $ putStrLn "LOCALHOST EMAIL"
       liftIO $ print . mailTo $ mail
-      liftIO $ print . mconcat . fmap showPart . mconcat . mailParts $ mail
+      liftIO $ print . take 1000 . mconcat . fmap showPart . mconcat . mailParts $ mail
+      liftIO $ putStrLn "--------------------------"
       pure $ Right ()
     False -> do
       emails <- withDbEnv $ allUnsubscribedEmails unsubbed
@@ -180,7 +181,7 @@ newEmailHtml toPlural subject widget = do
   (emailTbl :: PgTable Postgres db SendEmailTask) <- asksTableM
   forM_ toPlural $ \to -> do
     mail <- liftIO $ simpleMail to from subject "" (LT.fromStrict . T.decodeUtf8 $ body) []
-    fmap Right $ void $ withDbEnv $
+    fmap Right $ void $ withDbEnvQuiet $
       insertAndNotify emailTbl $ SendEmailTask
       { _sendEmailTask_id = default_
       , _sendEmailTask_finished = val_ False

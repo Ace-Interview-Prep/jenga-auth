@@ -99,10 +99,6 @@ privateRoute fma = do
   case mCookie of
     Nothing -> writeJSON'' $ (Left NoAuth_NoCookie)
     Just cookie -> do
-      liftIO $ do
-        print cookie
-        print $ cookieValue cookie
-        print $ B64.decode $ cookieValue cookie
       let
         --removeQuotes = T.init . (T.drop 1) -- TODO: why does this happen ?
         signed :: Signed (PrimaryKey Rhyolite.Account.Account Identity)
@@ -181,15 +177,8 @@ dependentPrivateRoute uTypeTbl (AuthCookieName authCookieName) dbConn key fma = 
   case mCookieAID of
     Nothing -> do
       liftIO $ putStrLn "depeendentPrivateRoute: No Cookie Found"
-      cookies_ <- rqCookies <$> getRequest
-      liftIO $ print cookies_
       liftSnap $ writeJSON' $ (Left NoAuth_NoCookie :: Either (BackendError ()) ()) --  :: Either T.Text ())
     Just cookieAID -> do
-      liftIO $ do
-        print cookieAID
-        print $ cookieValue cookieAID
-        print $ B64.decode $ cookieValue cookieAID
-        print $ B64.encode . fromRight undefined . B64.decode $ cookieValue cookieAID
       let
         --removeQuotes = id -- T.init . (T.drop 1) -- TODO: why does this happen ?
         signed :: Signed (PrimaryKey Account Identity)
@@ -257,13 +246,6 @@ constrainedPrivateRoute dbConn key userTypesAllowed fma = do
   mCookieAID <- getCookie $ T.encodeUtf8 authCookieName
   case mCookieAID of
     Nothing -> liftSnap $ do
-      req <- getRequest
-
-      liftIO $ do
-        putStr "constrainedPrivateRoute: getCookie failed"
-        print req
-        putStrLn "------------------"
-        print $ rqCookies req
       writeJSON'' $ (Left NoAuth_NoCookie :: Either (BackendError ()) ())
     Just cookieAID -> do
       let
@@ -303,36 +285,14 @@ privateRouteJSONOut key fma = do
       writeJSON'' = writeJSON
   authCookieName <- getAuthCookieName <$> asksM
   mCookie <- getCookie $ T.encodeUtf8 authCookieName
-  liftIO $ putStrLn "LINE 237"
-  liftIO $ print mCookie
   case mCookie of
     Nothing -> do
-      cs <- liftSnap $ pure . rqCookies =<< getRequest
-      liftIO $ putStrLn "Cookies:" >> print cs
       liftSnap $ writeJSON'' $ (Left NoAuth_NoCookie :: Either (BackendError e) a)
     Just cookieAID -> do
-      liftIO $ putStrLn "NEW"
-      liftIO $ print
-        $ authTokenFromCookieValue key $ cookieValue cookieAID
-
       let
         --removeQuotes = T.init . (T.drop 1) -- TODO: why does this happen ?
         signed :: Signed (PrimaryKey Account Identity)
         signed = Signed . T.decodeUtf8 . (fromRight undefined) . B64.decode . cookieValue $ cookieAID
-
-      liftIO $ putStrLn "Debug Cookies:"
-      liftIO $ print $ cookieValue cookieAID
-      liftIO $ print $ B64.decode $ cookieValue cookieAID
-      liftIO $ print $ fromRight undefined . B64.decode $ cookieValue cookieAID
-
-      liftIO $ putStrLn "TRY Cookies"
-
-      liftIO $ print
-        $ (readSignedWithKey key :: Signed (PrimaryKey Account Identity)
-                                 -> Maybe (PrimaryKey Account Identity)
-          )
-        . Signed . T.decodeUtf8 . fromRight undefined . B64.decode . removeQuotesBS
-        $ cookieValue cookieAID
       case (readSignedWithKey key) signed of
         Nothing -> liftSnap $ writeJSON'' $ (Left NoAuth_CantReadKey :: Either (BackendError e) a)
         Just acctId@(AccountId (SqlSerial _)) -> do

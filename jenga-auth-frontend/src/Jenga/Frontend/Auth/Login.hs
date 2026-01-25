@@ -34,6 +34,7 @@ data LoginData t m = LoginData
   , _login_password :: InputEl t m
   , _login_submit :: Event t ()
   , _login_forgotPassword :: Event t ()
+  , _login_goSignup :: Event t ()
   }
 
 login_FRP ::
@@ -53,9 +54,10 @@ login_FRP ::
   )
   => R backendRoute
   -> R frontendRoute
+  -> R frontendRoute
   -> LoginData t m
   -> ReaderT cfg m (LoginConfig t) -- (Event t (AuthToken, UserType))
-login_FRP loginRoute requestNewPasswordPageRoute (LoginData user pass submit forgotPass) = do
+login_FRP loginRoute requestNewPasswordPageRoute signupRoute (LoginData user pass submit forgotPass goSignup) = do
   rec
     let credentials = tag (current $ (,) <$> value user <*> value pass) submit
     (err :: Event t (RequestError LoginError), token :: Event t (AuthToken, UserType)) <- do
@@ -63,6 +65,7 @@ login_FRP loginRoute requestNewPasswordPageRoute (LoginData user pass submit for
     shouldSubmit <- holdDyn True $ leftmost [False <$ credentials, True <$ token, True <$ err]
     errors <- holdDyn Nothing $ Just . showUser <$> err
     setRoute $ requestNewPasswordPageRoute <$ forgotPass
+    setRoute $ signupRoute <$ goSignup
   pure LoginConfig
     { _loginConfig_errors = errors
     , _loginConfig_submitEnabled = shouldSubmit
