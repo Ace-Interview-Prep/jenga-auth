@@ -9,8 +9,12 @@ module Jenga.Common.HasJengaConfig
   , StripePlan(..)
   , CompanySignupCode(..)
   , SubscribeHash(..)
-  , OAuthClientID(..)
-  , OAuthClientSecret(..)
+  , GithubOAuthClientID(..)
+  , GithubOAuthClientSecret(..)
+  , GoogleOAuthClientID(..)
+  , GoogleOAuthClientSecret(..)
+  , DiscordOAuthClientID(..)
+  , DiscordOAuthClientSecret(..)
   , FreeTrialInfo(..)
   , FullRouteEncoder
   , IEncoder
@@ -66,8 +70,12 @@ newtype UserTypeCookieName = UserTypeCookieName { getUserTypeCookieName :: T.Tex
 newtype StripePlan = StripePlan { getStripePlan :: T.Text }
 newtype CompanySignupCode = CompanySignupCode { getCompanySignupCode :: T.Text }
 newtype SubscribeHash = SubscribeHash { getSubscribeHash :: T.Text } deriving (Eq, Ord)
-newtype OAuthClientID = OAuthClientID { getOAuthClientID :: T.Text } deriving (Eq, Ord)
-newtype OAuthClientSecret = OAuthClientSecret { getOAuthClientSecret :: T.Text } deriving (Eq, Ord)
+newtype GithubOAuthClientID = GithubOAuthClientID { getGithubOAuthClientID :: T.Text } deriving (Eq, Ord)
+newtype GithubOAuthClientSecret = GithubOAuthClientSecret { getGithubOAuthClientSecret :: T.Text } deriving (Eq, Ord)
+newtype GoogleOAuthClientID = GoogleOAuthClientID { getGoogleOAuthClientID :: T.Text } deriving (Eq, Ord)
+newtype GoogleOAuthClientSecret = GoogleOAuthClientSecret { getGoogleOAuthClientSecret :: T.Text } deriving (Eq, Ord)
+newtype DiscordOAuthClientID = DiscordOAuthClientID { getDiscordOAuthClientID :: T.Text } deriving (Eq, Ord)
+newtype DiscordOAuthClientSecret = DiscordOAuthClientSecret { getDiscordOAuthClientSecret :: T.Text } deriving (Eq, Ord)
 data FreeTrialInfo = FreeTrialInfo
   { getFreeTrialCode :: T.Text
   , getFreeTrialLength :: NominalDiffTime

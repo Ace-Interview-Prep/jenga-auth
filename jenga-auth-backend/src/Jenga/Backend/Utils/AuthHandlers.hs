@@ -10,14 +10,12 @@ import Jenga.Backend.Utils.HasTable
 import Jenga.Backend.Utils.Email
 import Jenga.Backend.DB.Auth
 import Jenga.Backend.Utils.Snap
-import Jenga.Common.Cookie
 import Jenga.Common.Errors
 import Jenga.Common.Auth
 import Jenga.Common.BeamExtras
 import Jenga.Common.Schema
 
 import Rhyolite.Account
-import qualified Data.Signed.ClientSession as Sesh
 import Web.ClientSession as CS
 
 import Snap
@@ -41,25 +39,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString as BS
-
-
--- | Backend only (needs key)
-authTokenToCookieValue
-  :: CS.Key
-  -> Id Account
-  -> IO BS.ByteString
-authTokenToCookieValue csk tkn = do
-  signedAcctID <- Sesh.signWithKey csk tkn
-  pure $ keylessTo signedAcctID
-
--- | Backend only (needs key)
-authTokenFromCookieValue
-  :: CS.Key
-  -> BS.ByteString
-  -> Maybe (Id Account)
-authTokenFromCookieValue csk bs =
-  (Sesh.readSignedWithKey csk)
-  =<< keylessFrom bs
 
 
 -- | This is currently a toss up as we switch from an old semi-broken system

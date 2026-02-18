@@ -8,16 +8,15 @@ module Jenga.Backend.Handlers.Auth.Login where
 import Jenga.Backend.DB.Auth
 import Jenga.Backend.Utils.HasConfig
 import Jenga.Backend.Utils.HasTable
+import Jenga.Backend.Utils.Cookies (addAuthCookieHeader)
 -- import Common.Constants (clientTypeHeader)
 import Jenga.Common.Schema
 -- import Common.Constants (authCookieName)
 -- import Common.Types
 -- import Common.ChatSchema
-import Jenga.Backend.Utils.AuthHandlers
 import Jenga.Common.BeamExtras
 import Jenga.Common.Auth
 import Jenga.Common.Errors
-import Jenga.Backend.Utils.Snap (getHeader)
 
 import Rhyolite.Backend.Account
 import Rhyolite.Account
@@ -33,11 +32,6 @@ import Control.Monad.IO.Class
 import Data.Pool
 import Data.Signed
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.ByteString as BS
-
-import Text.Read (readMaybe)
-import Data.Maybe
 
 
 -- | Note that the login function from rhyolite really just returns the ID
@@ -64,58 +58,6 @@ loginHandler (email, Password pass) = do
       signedTokenUserID_  <- liftIO $ signWithKey csk usersAccountId
       addAuthCookieHeader authCookieName usersAccountId
       pure $ Right (signedTokenUserID_, userType)
-
-addAuthCookieHeader
-  :: ( MonadIO m
-     , Snap.MonadSnap m
-     , HasConfig cfg Key
-     , HasConfig cfg DomainOption
-     )
-  => T.Text
-  -> Id Account
-  -> ReaderT cfg m ()
-addAuthCookieHeader cookieName_ acctID = do
-  domainOpts <- asksM -- Cfg _domainName
-  csk <- asksM -- clientSessionKey
-  cookieValue_ <- liftIO $ authTokenToCookieValue csk acctID
-  domain <- askDomainKVSnap domainOpts
-  Snap.modifyResponse $ Snap.setHeader "Set-Cookie"
-    $ (T.encodeUtf8 $ cookieName_)
-    <> "=" <> cookieValue_ <> "; "
-    <> "Path=/; "
-    <> fromMaybe "" domain
-    -- <> "Domain=" <> (T.encodeUtf8 domain) <> "; "
-    <> "Secure; "
-    <> "SameSite=None"
-  pure () --signedKey
---     <> "HttpOnly; Secure; SameSite=None"
-
-askDomainNameSnap :: Snap.MonadSnap m => DomainOption -> m T.Text
-askDomainNameSnap d = do
-  mClientString <- (getHeader clientTypeHeader)
-  pure $ case mClientString of
-    Nothing -> getDomainName (Web, d)
-    Just clientTypeString -> case readMaybe . T.unpack . T.decodeUtf8 $ clientTypeString of
-      Nothing -> getDomainName (Web, d)
-      Just clientType -> getDomainName (clientType, d)
-
-askDomainKVSnap
-  :: Snap.MonadSnap m
-  => DomainOption
-  -> m (Maybe BS.ByteString)
-askDomainKVSnap d = do
-  mClientString <- (getHeader clientTypeHeader)
-  let clientType = fromMaybe Web $ readMaybe . T.unpack . T.decodeUtf8 =<< mClientString
-  pure $ case (clientType, d) of
-    (Mobile, ProxiedDomain _ _) -> Nothing
-    x@(Web, ProxiedDomain _ _) ->
-      -- This is untested
-      Just $ "Domain=" <> (T.encodeUtf8 $ getDomainName x) <> "; "
-    x@(Web, DirectDomain _) ->
-      Just $ "Domain=" <> (T.encodeUtf8 $ getDomainName x) <> "; "
-    x@(Mobile, DirectDomain _) ->
-      Just $ "Domain=" <> (T.encodeUtf8 $ getDomainName x) <> "; "
-
 
 -- | If we are using websockets, this is all we need
 tryLogin
@@ -147,10 +89,3 @@ tryLogin (email, Password pass) = do
             Nothing -> pure . Left . BCritical $ NoUserTypeFound
             Just uType -> do
               pure $ Right (usersAccountId, uType)
-
--- | TODO: is this a prism?
-getDomainName :: (ClientType, DomainOption) -> T.Text
-getDomainName = \case
-  (Mobile, ProxiedDomain proxyDomainName _baseDomainName) -> proxyDomainName
-  (Web   , ProxiedDomain _proxyDomainName baseDomainName) -> baseDomainName
-  (_     , DirectDomain u) -> u

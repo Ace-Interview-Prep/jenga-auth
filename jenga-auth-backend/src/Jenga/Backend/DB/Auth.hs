@@ -9,6 +9,7 @@ import Jenga.Backend.Utils.HasTable
 import Jenga.Backend.DB.Instances ()
 import Jenga.Common.Auth
 import Jenga.Common.Schema
+import Jenga.Common.OAuth
 import Jenga.Common.BeamExtras
 
 import Rhyolite.Account
@@ -244,3 +245,47 @@ getGithubUserIfTheyExist githubOAuthTbl ghUser = runSelectReturningOne $ select 
   gits <- all_ githubOAuthTbl
   guard_ $ (_githubID_ghid gits) ==. (val_ $ fromIntegral $ _githubUser_github_id ghUser)
   pure gits
+
+insertNewGoogleID
+  :: PgTable Postgres db GoogleID
+  -> GoogleUser
+  -> PrimaryKey Account Identity
+  -> Pg ()
+insertNewGoogleID googleOAuthTbl googleUser (AccountId uid) = do
+  runInsert $ insert googleOAuthTbl $ insertExpressions
+    [ GoogleID
+      (val_ $ T.pack $ _googleUser_id googleUser)
+      (val_ $ unSerial uid)
+    ]
+
+getGoogleUserIfTheyExist
+  :: Database Postgres db
+  => PgTable Postgres db GoogleID
+  -> GoogleUser
+  -> Pg (Maybe (GoogleID Identity))
+getGoogleUserIfTheyExist googleOAuthTbl googleUser = runSelectReturningOne $ select $ do
+  googleIds <- all_ googleOAuthTbl
+  guard_ $ (_googleID_gid googleIds) ==. (val_ $ T.pack $ _googleUser_id googleUser)
+  pure googleIds
+
+insertNewDiscordID
+  :: PgTable Postgres db DiscordID
+  -> DiscordUser
+  -> PrimaryKey Account Identity
+  -> Pg ()
+insertNewDiscordID discordOAuthTbl discordUser (AccountId uid) = do
+  runInsert $ insert discordOAuthTbl $ insertExpressions
+    [ DiscordID
+      (val_ $ T.pack $ _discordUser_id discordUser)
+      (val_ $ unSerial uid)
+    ]
+
+getDiscordUserIfTheyExist
+  :: Database Postgres db
+  => PgTable Postgres db DiscordID
+  -> DiscordUser
+  -> Pg (Maybe (DiscordID Identity))
+getDiscordUserIfTheyExist discordOAuthTbl discordUser = runSelectReturningOne $ select $ do
+  discordIds <- all_ discordOAuthTbl
+  guard_ $ (_discordID_did discordIds) ==. (val_ $ T.pack $ _discordUser_id discordUser)
+  pure discordIds

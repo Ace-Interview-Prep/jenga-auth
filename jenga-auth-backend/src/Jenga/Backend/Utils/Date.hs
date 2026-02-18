@@ -5,14 +5,15 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveLift #-}
+{-# LANGUAGE PackageImports #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 -- for validGregorian / Day instance
 module Jenga.Backend.Utils.Date where
 
 import Data.Time
-import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
+import "template-haskell" Language.Haskell.TH
+import "template-haskell" Language.Haskell.TH.Syntax
 import Control.Monad.IO.Class
 import Control.Monad
 
