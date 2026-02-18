@@ -92,6 +92,7 @@ library
     Jenga.Backend.Utils.Migrations
     Jenga.Backend.Utils.Snap
     Jenga.Backend.Utils.Email
+    Jenga.Backend.Utils.Cookies
 
     Jenga.Backend.Handlers.Auth.Login
     Jenga.Backend.Handlers.Auth.OAuth
